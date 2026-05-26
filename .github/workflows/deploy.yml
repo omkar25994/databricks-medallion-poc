@@ -12,22 +12,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Deploy via API ✅
+    - name: Deploy Notebook
       run: |
+        CONTENT=$(base64 -w 0 bronze_ingestion.ipynb)
         curl -X POST "${{ secrets.DATABRICKS_HOST }}/api/2.0/workspace/import" \
         -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}" \
         -H "Content-Type: application/json" \
-        -d '{
-              "path": "/Workspace/poc/bronze_ingestion",
-              "format": "SOURCE",
-              "language": "PYTHON",
-              "overwrite": true,
-              "content": "'$(base64 -w 0 bronze_ingestion.ipynb)'"
-            }'
+        -d "{
+              \"path\": \"/Workspace/poc/bronze_ingestion\",
+              \"format\": \"JUPYTER\",
+              \"overwrite\": true,
+              \"content\": \"$CONTENT\"
+            }"
 
-    - name: Run Job ✅
+    - name: Run Job
       run: |
         curl -X POST "${{ secrets.DATABRICKS_HOST }}/api/2.1/jobs/run-now" \
         -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}" \
         -H "Content-Type: application/json" \
-        -d '{"job_id": '${{ secrets.JOB_ID }}'}'
+        -d "{\"job_id\": ${{ secrets.JOB_ID }}}"
