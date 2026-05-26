@@ -23,6 +23,11 @@ jobs:
         ${{ secrets.DATABRICKS_TOKEN }}
         EOF
 
+    - name: Debug Auth
+      run: |
+        echo $DATABRICKS_HOST
+        databricks workspace ls
+
     - name: Deploy Notebooks
       run: |
         databricks workspace import_dir . /Workspace/poc --overwrite
