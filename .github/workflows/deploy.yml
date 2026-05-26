@@ -32,4 +32,3 @@ jobs:
     - name: Run Medallion Job ✅
       run: |
         databricks jobs run-now --job-id 278251268968840
-``
