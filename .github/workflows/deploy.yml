@@ -10,24 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: Install CLI
-      run: pip install databricks-cli
-
-    - name: Set Environment Variables ✅
+    - name: Deploy via API ✅
       run: |
-        echo "DATABRICKS_HOST=${{ secrets.DATABRICKS_HOST }}" >> $GITHUB_ENV
-        echo "DATABRICKS_TOKEN=${{ secrets.DATABRICKS_TOKEN }}" >> $GITHUB_ENV
+        curl -X POST "${{ secrets.DATABRICKS_HOST }}/api/2.0/workspace/import" \
+        -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}" \
+        -H "Content-Type: application/json" \
+        -d '{
+              "path": "/Workspace/poc/bronze_ingestion",
+              "format": "SOURCE",
+              "language": "PYTHON",
+              "overwrite": true,
+              "content": "'$(base64 -w 0 bronze_ingestion.ipynb)'"
+            }'
 
-    - name: Debug Check ✅ (VERY IMPORTANT)
+    - name: Run Job ✅
       run: |
-        echo "HOST=$DATABRICKS_HOST"
-        databricks workspace ls
-
-    - name: Deploy Notebooks
-      run: databricks workspace import_dir . /Workspace/poc --overwrite
-
-    - name: Run Job
-      run: databricks jobs run-now --job-id ${{ secrets.JOB_ID }}
+        curl -X POST "${{ secrets.DATABRICKS_HOST }}/api/2.1/jobs/run-now" \
+        -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}" \
+        -H "Content-Type: application/json" \
+        -d '{"job_id": '${{ secrets.JOB_ID }}'}'
+``
