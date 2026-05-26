@@ -31,4 +31,3 @@ jobs:
         -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}" \
         -H "Content-Type: application/json" \
         -d '{"job_id": '${{ secrets.JOB_ID }}'}'
-``
