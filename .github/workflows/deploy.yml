@@ -10,29 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
+    - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Install Databricks CLI
+    - name: Install CLI
       run: pip install databricks-cli
 
-    - name: Configure Databricks
+    - name: Set Environment Variables ✅
       run: |
-        databricks configure --token <<EOF
-        ${{ secrets.DATABRICKS_HOST }}
-        ${{ secrets.DATABRICKS_TOKEN }}
-        EOF
+        echo "DATABRICKS_HOST=${{ secrets.DATABRICKS_HOST }}" >> $GITHUB_ENV
+        echo "DATABRICKS_TOKEN=${{ secrets.DATABRICKS_TOKEN }}" >> $GITHUB_ENV
 
-    - name: Debug Auth
+    - name: Debug Check ✅ (VERY IMPORTANT)
       run: |
-        echo $DATABRICKS_HOST
+        echo "HOST=$DATABRICKS_HOST"
         databricks workspace ls
 
     - name: Deploy Notebooks
-      run: |
-        databricks workspace import_dir . /Workspace/poc --overwrite
+      run: databricks workspace import_dir . /Workspace/poc --overwrite
 
     - name: Run Job
-      run: |
-        databricks jobs run-now --job-id ${{ secrets.JOB_ID }}
-
+      run: databricks jobs run-now --job-id ${{ secrets.JOB_ID }}
