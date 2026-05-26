@@ -10,31 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Deploy Notebook
+    - name: Install Databricks CLI
+      run: pip install databricks-cli
+
+    - name: Set Databricks Environment
       run: |
-        CONTENT=$(base64 -w 0 bronze_ingestion.ipynb)
+        echo "DATABRICKS_HOST=${{ secrets.DATABRICKS_HOST }}" >> $GITHUB_ENV
+        echo "DATABRICKS_TOKEN=${{ secrets.DATABRICKS_TOKEN }}" >> $GITHUB_ENV
 
-        curl -X POST "${{ secrets.DATABRICKS_HOST }}/api/2.0/workspace/import" \
-        -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}" \
-        -H "Content-Type: application/json" \
-        -d @- <<EOF
-        {
-          "path": "/Workspace/poc/bronze_ingestion",
-          "format": "JUPYTER",
-          "overwrite": true,
-          "content": "$CONTENT"
-        }
-        EOF
-
-    - name: Run Job
+    # ✅ THIS IS THE MAGIC FIX
+    - name: Update Databricks Repo ✅
       run: |
-        curl -X POST "${{ secrets.DATABRICKS_HOST }}/api/2.1/jobs/run-now" \
-        -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}" \
-        -H "Content-Type: application/json" \
-        -d @- <<EOF
-        {
-          "job_id": ${{ secrets.JOB_ID }}
-        }
-        EOF
+        databricks repos update \
+        --path "/Repos/om1821@gmail.com/databricks-medallion-poc" \
+        --branch main
+
+    # ✅ Run Pipeline Job
+    - name: Run Medallion Job ✅
+      run: |
+        databricks jobs run-now --job-id 278251268968840
+``
